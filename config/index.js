@@ -8,7 +8,7 @@ module.exports = {
     assetsPublicPath: '/',
     proxyTable: {
       '/pre': {
-        target: 'http://useEslintlocalhost:8080',//后端接口地址
+        target: 'http://localhost:8080',//后端接口地址
         changeOrigin: true,  //是否跨域
         pathRewrite: {
           '^/pre': '/',//重写,

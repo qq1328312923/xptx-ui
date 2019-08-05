@@ -1,10 +1,11 @@
 import request from '@/utils/request'
 
-export function loginByUsername(username, password, captcha) {
+export function loginByUsername(username, password, captcha,captchauuid) {
   const data = {
     username,
     password,
-    captcha
+    captcha,
+    captchauuid
   }
   // 登录
   return request({
@@ -12,6 +13,14 @@ export function loginByUsername(username, password, captcha) {
     method: 'post',
     params: data
   })
+}
+
+export function captcha(){
+  return request({
+      url:  '/captcha.jpg?t=' + new Date().getTime(),
+      method: 'get'
+      //如果data 则是json，如果改成params则是表单提交
+    })
 }
 
 // 登出
