@@ -5,13 +5,13 @@
         ref="popupTree"
         :data="data"
         :props="props"
-        node-key="nodeKey"
         :default-expand-all="defaultExpandAll"
         :highlight-current="true"
         :expand-on-click-node="true"
         @current-change="currentChangeHandle"
       />
     </el-popover>
+    <!-- v-popover的作用点击这个input框 注册哪个popover  -->
     <el-input v-model="prop" v-popover:popover :readonly="true" :placeholder="placeholder" style="cursor:pointer;" />
   </div>
 </template>

@@ -2,7 +2,7 @@ import request from '@/utils/request'
 
 export function getRoleList(parms) {
   return request({
-    url: '/role',
+    url: '/role/list',
     method: 'get',
     params: parms
   })

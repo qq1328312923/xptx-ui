@@ -15,7 +15,7 @@ export const saveDict = (data) => {
 // 获取字典列表
 export const getDict = (parms) => {
   return request({
-    url: '/dict',
+    url: '/dict/list',
     method: 'get',
     params: parms
   })

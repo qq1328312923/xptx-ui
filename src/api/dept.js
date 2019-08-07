@@ -15,7 +15,7 @@ export const saveDept = (data) => {
 // 获取部门列表
 export const getDept = () => {
   return request({
-    url: '/dept',
+    url: '/dept/list',
     method: 'get'
   })
 }

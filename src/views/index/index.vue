@@ -2,7 +2,7 @@
   <div class="wel-contailer">
     <div class="banner-text">
       <div style="text-align: center;">
-        <img src="https://xplatform-pro.oss-cn-beijing.aliyuncs.com/icon/xpt_log.png?Expires=1565147221&OSSAccessKeyId=TMP.hVLb2hKMJeJA7SU6b1sgy4gvSZSzZidkynJViiemBjctxpZCrRvY5e2geDkwNZwdjjHsAdsP1sUjySPa4JmwLXJsPFy4LsYKuVx9Fk6PzuZ8u94wsK4UjQYSXX9pAy.tmp&Signature=rKf83AHqqi2QAndF1YEUWaQnyv8%3D" height="256" width="256" alt="pre系统logo">
+        <img src="https://xplatform-pro.oss-cn-beijing.aliyuncs.com/icon/xpt_log.png" height="256" width="256" alt="pre系统logo">
       </div>
       <span>
         <a href="https://gitee.com/li_haodong/pre" target="_blank">
