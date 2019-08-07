@@ -2,11 +2,11 @@
   <div class="wel-contailer">
     <div class="banner-text">
       <div style="text-align: center;">
-        <img src="https://gitee.com/li_haodong/picture_management/raw/master/pic/WechatIMG9.png" height="256" width="256" alt="pre系统logo">
+        <img src="https://xplatform-pro.oss-cn-beijing.aliyuncs.com/icon/xpt_log.png?Expires=1565147221&OSSAccessKeyId=TMP.hVLb2hKMJeJA7SU6b1sgy4gvSZSzZidkynJViiemBjctxpZCrRvY5e2geDkwNZwdjjHsAdsP1sUjySPa4JmwLXJsPFy4LsYKuVx9Fk6PzuZ8u94wsK4UjQYSXX9pAy.tmp&Signature=rKf83AHqqi2QAndF1YEUWaQnyv8%3D" height="256" width="256" alt="pre系统logo">
       </div>
       <span>
         <a href="https://gitee.com/li_haodong/pre" target="_blank">
-          <img src="https://img.shields.io/badge/Pre-1.0-green.svg" alt="Build Status">
+          <img src="https://img.shields.io/badge/XPT-1.0-green.svg" alt="Build Status">
         </a>
         <img src="https://img.shields.io/badge/spring--boot-2.1.5.RELEASE-green.svg" alt="spring-boot">
         <img src="https://img.shields.io/badge/security-5.1.5-blue.svg" alt="security">
@@ -15,14 +15,14 @@
       <br>
       <span>
         <el-collapse v-model="activeNames">
-          <el-collapse-item title="Pre RBAC权限管理系统" name="1">
+          <el-collapse-item title="XPlatform RBAC权限管理系统" name="1">
             <div>基于Spring Boot 2.1.5.RELEASE</div>
             <div>基于Spring Security 5.1.5</div>
           </el-collapse-item>
-          <el-collapse-item title="Pre 完美的容器化支持" name="2">
+          <el-collapse-item title="XPlatform 完美的容器化支持" name="2">
             <div>支持docker部署</div>
           </el-collapse-item>
-          <el-collapse-item title="Pre 项目特点" name="3">
+          <el-collapse-item title="XPlatform 项目特点" name="3">
             <div>前后端分离架构</div>
             <div>Jwt Token 鉴权机制</div>
             <div>代码注释丰富，极其简洁风格，上手快易理解</div>
