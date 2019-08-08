@@ -5,8 +5,14 @@
     <breadcrumb class="breadcrumb-container" />
 
     <div class="right-menu">
+        <span data-v-b50ef614="" class="el-breadcrumb__item" aria-current="page">
+          <span   class="el-breadcrumb__inner">
+            <span data-v-b50ef614="" class="no-redirect">
+             您好,{{name}}
+             </span>
+         </span>
+       </span>
       <template v-if="device!=='mobile'">
-
         <!--<lang-select class="right-menu-item hover-effect" />-->
 
         <el-tooltip :content="$t('navbar.theme')" effect="dark" placement="bottom">
@@ -51,7 +57,9 @@ export default {
     Hamburger,
     ThemePicker
   },
+  //有缓存的属性
   computed: {
+    //相当于定义一个属性{"sidebar":sidebar,"name":name}
     ...mapGetters([
       'sidebar',
       'name',

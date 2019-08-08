@@ -45,7 +45,7 @@ export function deleteJob(id) {
 // 通过部门id获取岗位列表
 export function getJobListByDeptId(id) {
   return request({
-    url: '/job/' + id,
+    url: '/job/listByDeptId/' + id,
     method: 'get'
   })
 }

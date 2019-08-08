@@ -87,9 +87,9 @@
 
           <el-table-column label="操作" fixed="right" min-width="120" align="center">
             <template slot-scope="scope">
-              <!--<el-button @click="handRest(scope.row)" type="warning" size="small">重置密码</el-button>-->
-              <el-button size="mini" icon="el-icon-edit"  >编辑</el-button>
-              <el-button type="danger" size="mini" icon="el-icon-delete"  >删除</el-button>
+              <el-button @click="handRest(scope.row)" type="warning" size="small">重置密码</el-button>
+              <el-button size="mini" icon="el-icon-edit" @click="handleEdit(scope.row)" >编辑</el-button>
+              <el-button type="danger" size="mini" icon="el-icon-delete"  @click="handleDelete(scope.row)" >删除</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -119,15 +119,52 @@
                   />
                 </el-form-item>
 
+                <el-form-item label="岗位" :label-width="formLabelWidth">
+                  <el-select v-model="dataForm.jobId" placeholder="请先选择部门" style="width: 100%">
+                    <el-option
+                      v-for="(item,index) in jobs"
+                      :key="''+ index"
+                      :label="item.jobName"
+                      :value="item.id"
+                    />
+                  </el-select>
+                </el-form-item>
+                
+                <el-form-item label="角色" prop="userRoles" label-width="120px">
+                  <el-select v-model="dataForm.roleList" multiple placeholder="请选择" style="width: 100%;">
+                    <el-option
+                      v-for="item in roles"
+                      :key="item.id"
+                      :label="item.roleName"
+                      :value="item.id"
+                    />
+                  </el-select>
+                </el-form-item>
+                <el-form-item label="状态" prop="status" label-width="120px">
+                  <el-switch
+                    v-model="dataForm.status"
+                    active-color="#13ce66"
+                    inactive-color="#ff4949"
+                    active-text="正常"
+                    active-value="1"
+                    inactive-text="锁定"
+                    inactive-value="2"
+                  />
+                </el-form-item>
              </el-form>
+             <div slot="footer"  class="dialog-footer">
+                <el-button @click="dialogFormVisible = false">取 消</el-button>
+                <el-button type="primary" @click="submitForm">确 定</el-button>
+             </div>
         </el-dialog>
       </el-col>
     </el-row>
   </div>
 </template>
 <script>
-  import { getUserList } from '@/api/user'
+  import { getUserList,addUser,editUser,deleteUser,restPass } from '@/api/user'
   import { getRoleList } from '@/api/roles'
+  import { getJobListByDeptId } from '@/api/job'
   import { getDept } from '@/api/dept'
   import initDict from '@/mixins/initDict'
   import PopupTreeInput from '@/components/PopupTreeInput'
@@ -152,6 +189,8 @@
           //用户列表
           tableData:[],
           roles: [], // 角色列表
+          //岗位
+          jobs:[],
           currentPage: 1,
           pageSize: 10,
           total: 0, // 总数量
@@ -167,10 +206,10 @@
             avatar: '',
             deptId: 1,
             deptName: '',
-            jobId: 0,
+            jobId: null,
             email: 'qq1328312923@163.com',
             phone: '15728046328',
-            lockFlag: '' + 0,
+            status: '' + 1,
             roleList: []
           },
         }
@@ -222,14 +261,156 @@
         },
         //处理添加
         handleAdd:function(){
+          resetDataForm();
+          //显示dialog
           this.dialogFormVisible = true
+          //是新增
+          this.operation = true
         },
-         // 部门菜单树选中
+         // 编辑
+        handleEdit: function(row) {
+          this.dialogFormVisible = true
+          this.operation = false
+          this.dataForm = Object.assign({}, row)
+          this.dataForm.status = row.status+'';
+          this.getJobs(row.deptId)
+          // 设置选择的角色列表
+          const userRoles = []
+          for (let i = 0, len = row.roleList.length; i < len; i++) {
+            userRoles.push(row.roleList[i].id)
+          }
+          this.dataForm.roleList = userRoles
+        },
+        // 部门菜单树选中
         deptTreeCurrentChangeHandle(data) {
-          this.dataForm.deptId = data.deptId
+          this.dataForm.deptId = data.id
           this.dataForm.deptName = data.name
-          // this.getJobs(data.deptId)
+          this.getJobs(data.id)
         },
+        // 加载岗位列表
+        getJobs(id) {
+          getJobListByDeptId(id).then(res => {
+            this.jobs = res.data.data
+          })
+        },
+        //提交修改
+        submitForm: function() {
+          const userRoles = []
+          for (let i = 0, len = this.dataForm.roleList.length; i < len; i++) {
+            userRoles.push(this.dataForm.roleList[i])
+          }
+          this.dataForm.roleList = userRoles
+          if(this.operation){
+             // 添加用户
+            addUser(this.dataForm).then(response => {
+              if (response.data.code === 200) {
+                this.$message({
+                  type: 'success',
+                  message: '操作成功'
+                })
+                this.dialogFormVisible = false
+                this.adminList()
+              } else {
+                this.$message({
+                  type: 'error',
+                  message: response.data.msg
+                })
+              }
+            })
+          }else{
+           // 编辑用户
+           editUser(this.dataForm).then(response => {
+              if (response.data.code === 200) {
+                this.$message({
+                  type: 'success',
+                  message: '操作成功'
+                })
+                this.dialogFormVisible = false
+                this.adminList()
+              } else {
+                this.$message({
+                  type: 'error',
+                  message: response.data.msg
+                })
+              }
+           })
+          }
+        },
+         // 删除用户
+        handleDelete: function(row) {
+          const that = this
+          this.$confirm('此操作将该管理员删除, 是否继续?', '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          })
+            .then(() => {
+              deleteUser(row.id).then(response => {
+                if (response.data.code === 200) {
+                  this.$message({
+                    type: 'success',
+                    message: '操作成功'
+                  })
+                  that.adminList()
+                } else {
+                  this.$message({
+                    type: 'error',
+                    message: response.data.msg
+                  })
+                }
+              })
+            })
+            .catch(() => {
+              this.$message({
+                type: 'info',
+                message: '已取消删除'
+              })
+            })
+        },
+        // 密码重置 
+        handRest: function(row) {
+          const that = this
+          this.$confirm('此操作将会将该用户密码重置, 是否继续?', '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          })
+            .then(() => {
+              restPass(row.id).then(response => {
+                if (response.data.code === 200) {
+                  that.$message({
+                    type: 'success',
+                    message: '重置密码成功'
+                  })
+                } else {
+                  that.$message({
+                    type: 'error',
+                    message: response.data.msg
+                  })
+                }
+              })
+            })
+            .catch(() => {
+              this.$message({
+                type: 'info',
+                message: '重置密码取消'
+              })
+            })
+        },
+        //表单重置
+        resetDataForm: function() {
+              this.dataForm = {
+                username: '',
+                avatar: '',
+                deptId: 1,
+                deptName: '',
+                jobId: null,
+                email: 'qq1328312923@163.com',
+                phone: '15728046328',
+                status: '' + 1,
+                roleList: []
+              }
+        }
      }
   }
 </script>
