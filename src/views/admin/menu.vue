@@ -29,6 +29,7 @@
       :default-expand-all="defaultExpandAll"
       :data="tableTreeData"
       :columns="columns"
+      v-loading="loading"
       size="small"
     >
       <template slot="icon" slot-scope="{scope}">
@@ -152,7 +153,7 @@
 import PopupTreeInput from '@/components/PopupTreeInput'
 import treeTable from '@/components/TreeTable'
 import IconSelect from '@/components/IconSelect'
-import { saveMenu, getMenuTree, updateMenu, deleteMenu } from '@/api/menu'
+import { saveMenu, getMenuTreeList, updateMenu, deleteMenu } from '@/api/menu'
 import { formatData, getPar } from '@/utils/webUtils'
 
 export default {
@@ -161,13 +162,11 @@ export default {
     return {
       size: 'small',
       keyword: '',
-      formLabelWidth: '120px',
-      isEditForm: false,
       loading: false,
       dialogVisible: false, // 控制弹出框
       menuTypeList: ['目录', '菜单', '按钮'],
       dataForm: {
-        menuId: 0,
+        id: 0,
         type: 1,
         name: '',
         parentId: 0,
@@ -258,7 +257,9 @@ export default {
     // 获取数据
     findTreeData: function() {
       this.loading = true
-      getMenuTree().then(res => {
+      const params = new URLSearchParams()
+      params.append('name', this.keyword)
+      getMenuTreeList(params).then(res => {
         this.tableTreeData = res.data.data
         this.popupTreeData = this.getParentMenuTree(res.data.data)
         this.loading = false
@@ -273,7 +274,6 @@ export default {
       }
       return [parent]
     },
-
     handleFind: function() {
       this.findTreeData()
     },
@@ -282,7 +282,7 @@ export default {
       this.dialogVisible = true
       this.isEditForm = false
       this.dataForm = {
-        menuId: 0,
+        id: 0,
         type: 1,
         name: '',
         parentId: 0,
@@ -297,10 +297,9 @@ export default {
     },
     // 显示编辑页面
     handleEdit: function(row) {
-      this.isEditForm = true
       this.dialogVisible = true
-      const { menuId, type, name, parentId, parentName, isFrame, component, path, perms, sort, icon } = row
-      this.dataForm.menuId = menuId
+      const { id, type, name, parentId, parentName, isFrame, component, path, perms, sort, icon } = row
+      this.dataForm.id = id
       this.dataForm.type = type
       this.dataForm.name = name
       this.dataForm.parentId = parentId
@@ -314,10 +313,9 @@ export default {
     },
     // 菜单树选中
     handleTreeSelectChange(data) {
-      this.dataForm.parentId = data.menuId
+      this.dataForm.parentId = data.id
       this.dataForm.parentName = data.name
     },
-
     // 删除操作
     handleDelete: function(row) {
       const that = this
@@ -327,7 +325,7 @@ export default {
         type: 'warning'
       })
         .then(() => {
-          deleteMenu(row.menuId).then(response => {
+          deleteMenu(row.id).then(response => {
             if (response.data.code === 200) {
               this.$message({
                 type: 'success',

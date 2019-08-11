@@ -7,23 +7,34 @@ import request from '@/utils/request'
 // 保存
 export const saveMenu = (data) => {
   return request({
-    url: '/menu',
+    url: '/menu/add',
     method: 'post',
     data: data
   })
 }
 // 删除
-export const deleteMenu = (id) => {
+export function deleteMenu (id) {
   return request({
-    url: '/menu/' + id,
-    method: 'delete'
+    url: '/menu/delete/' + id,
+    method: 'post'
   })
 }
 // 查找导航菜单树
-export const getMenuTree = () => {
+export function getMenuTreeList (parms) {
   return request({
-    url: '/menu',
-    method: 'get'
+    url: '/menu/list',
+    method: 'get',
+    params: parms
+  })
+}
+
+
+// 更新菜单
+export function updateMenu(data) {
+  return request({
+    url: '/menu/update',
+    method: 'post',
+    data: data
   })
 }
 
@@ -39,14 +50,5 @@ export const getMenus = () => {
   return request({
     url: '/menu/getMenus',
     method: 'get'
-  })
-}
-
-// 更新菜单
-export function updateMenu(data) {
-  return request({
-    url: '/menu',
-    method: 'put',
-    data: data
   })
 }

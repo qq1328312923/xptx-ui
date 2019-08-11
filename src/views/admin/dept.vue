@@ -8,10 +8,12 @@
         v-model="defaultExpandAll"
         active-color="#13ce66"
         inactive-color="#ff4949"
+        :active-value="true"
+        :inactive-value="false"
       />
     </div>
     <!--表格树内容栏-->
-    <tree-table :key="key" :default-expand-all="defaultExpandAll" :data="tableTreeData" :columns="columns" size="small">
+    <tree-table :key="key" v-loading="loading" :default-expand-all="defaultExpandAll" :data="tableTreeData" :columns="columns" size="small">
 
       <template slot="createTime" slot-scope="{scope}">
         <span>{{ parseTime(scope.row.createTime) }}</span>
@@ -21,45 +23,31 @@
         <el-button type="danger" size="mini" icon="el-icon-delete" @click="handleDelete(scope.row)">删除</el-button>
       </template>
     </tree-table>
-
-    <!-- 新增修改界面 -->
-    <el-dialog
-      :title="!dataForm.deptId ? '新增部门' : '修改部门'"
-      width="40%"
-      :visible.sync="dialogVisible"
-      :close-on-click-modal="false"
-    >
-      <el-form
-        ref="dataForm"
-        :model="dataForm"
-        :rules="dataRule"
-        label-width="80px"
-        :size="size"
-        style="text-align:left;"
-        @keyup.enter.native="submitForm()"
-      >
-        <el-form-item label="机构名称" prop="name">
-          <el-input v-model="dataForm.name" placeholder="请输入机构名称" />
-        </el-form-item>
-        <el-form-item label="上级机构" prop="parentName">
-          <popup-tree-input
-            :data="popupTreeData"
-            :props="popupTreeProps"
-            :prop="dataForm.parentName == null?'顶级菜单':dataForm.parentName"
-            :node-key="''+dataForm.parentId"
-            :current-change-handle="handleTreeSelectChange"
-          />
-        </el-form-item>
-        <el-form-item v-if="dataForm.type !== 2" label="排序编号" prop="sort">
-          <el-input-number v-model="dataForm.sort" controls-position="right" :min="0" label="排序编号" />
-        </el-form-item>
-      </el-form>
-      <span slot="footer" class="dialog-footer">
-        <el-button :size="size" @click="dialogVisible = false">取消</el-button>
-        <el-button :size="size" type="primary" :loading="editLoading" @click="submitEditForm">确定</el-button>
-      </span>
+ 
+    <!-- 添加或修改对话框 -->
+    <el-dialog :title="!dataForm.id ? '新增部门' : '修改部门'" :visible.sync="dialogFormVisible"  :close-on-click-modal="false">
+       <el-form :model="dataForm"  ref="dataForm" :rules="dataRule" label-width="80px" size="small"  style="text-align:left;"> 
+          <el-form-item label="机构名称" prop="name">
+              <el-input v-model="dataForm.name" placeholder="请输入机构名称" />
+          </el-form-item>
+          <el-form-item label="上级机构" prop="parentName">
+              <popup-tree-input
+                :data="popupTreeData"
+                :props="popupTreeProps"
+                :prop="dataForm.parentName == null?'顶级菜单':dataForm.parentName"
+                :node-key="''+dataForm.parentId"
+                :current-change-handle="handleTreeSelectChange"
+              />
+          </el-form-item>
+          <el-form-item label="排序编号" >
+              <el-input-number v-model="dataForm.sort" controls-position="right" :min="0"></el-input-number>
+          </el-form-item>
+       </el-form>
+       <div slot="footer" class="dialog-footer">
+          <el-button size="small" @click="dialogFormVisible = false">取消</el-button>
+          <el-button size="small" type="primary" :loading="editLoading" @click="submitForm">确定</el-button>
+       </div>
     </el-dialog>
-
   </div>
 </template>
 
@@ -73,16 +61,13 @@ export default {
   components: { PopupTreeInput, treeTable },
   data() {
     return {
-      size: 'small',
-      tableData: [],
-      title: '增加分类',
-      dialogFormVisible: false, // 控制弹出框
-      formLabelWidth: '120px',
-      isEditForm: false,
-      loading: false,
-      dialogVisible: false,
+      //默认展开
       defaultExpandAll: true,
+      //表单是否加载
+      loading:false,
+      //第几个作为id
       key: 1,
+      //树形
       columns: [
         {
           label: '机构名称',
@@ -110,14 +95,19 @@ export default {
           key: 'operation'
         }
       ],
-      dataForm: {
-        deptId: 0,
-        name: '',
-        parentId: 0,
-        parentName: '',
-        sort: 0
-      },
+      //值
       tableTreeData: [],
+      //编辑框是否显示
+      dialogFormVisible:false,
+      //表单标签
+      formLabelWidth: '120px',
+      dataForm: {
+        id:null,
+        name:'',
+        parentId:null,
+        parentName:'',
+        sort:0,
+      },
       // 表单校验
       dataRule: {
         name: [
@@ -127,143 +117,143 @@ export default {
           { required: true, message: '上级机构不能为空', trigger: 'change' }
         ]
       },
+      //上级部门选择框
       popupTreeData: [],
       popupTreeProps: {
         label: 'name',
         children: 'children'
       },
-      editLoading: false
+      //确定按钮圆圈加载
+      editLoading:false
     }
   },
   created() {
-    this.findTreeData()
+    this.getDeptTreeList()
   },
   methods: {
     parseTime,
-    handleFind: function() {
-      this.findTreeData()
-    },
-    // 显示新增界面
-    handleAdd: function() {
-      this.dialogVisible = true
+    //重置表单内容
+    resertForm:function(){
       this.dataForm = {
-        deptId: 0,
-        name: '',
-        parentId: 0,
-        parentName: '',
-        sort: 0
+        id:null,
+        name:'',
+        parentId:null,
+        parentName:'',
+        sort:0,
       }
     },
-    // 编辑界面
-    handleEdit: function(row) {
-      this.isEditForm = true
-      this.dialogVisible = true
-      this.dataForm.deptId = row.deptId
+    //增加部门
+    handleAdd:function(){
+      this.dialogFormVisible = true
+      this.resertForm();
+    },
+    //编辑部门
+    handleEdit:function(row){
+      this.dialogFormVisible = true
+      this.dataForm.id = row.id
       this.dataForm.name = row.name
       this.dataForm.parentId = row.parentId
       this.dataForm.sort = row.sort
       this.dataForm.parentName = row.parentName
-    },
-
-    // 获取数据
-    findTreeData: function() {
-      this.loading = true
-      getDept().then(res => {
-        this.tableTreeData = res.data.data
-        this.popupTreeData = this.getParentMenuTree(res.data.data)
-        this.loading = false
-      })
-    },
-    // 获取上级机构树
-    getParentMenuTree: function(tableTreeDdata) {
-      const parent = {
-        parentId: 0,
-        name: '顶级菜单',
-        children: tableTreeDdata
+      if(row.parentId==0){
+        this.dataForm.parentName='顶级菜单'
       }
-      return [parent]
     },
-    // 机构树选中
-    handleTreeSelectChange(data) {
-      this.dataForm.parentId = data.deptId
-      this.dataForm.parentName = data.name
-    },
-
-    // 图标选中
-    iconActiveHandle(iconName) {
-      this.dataForm.icon = iconName
-    },
-
-    // 删除
-    handleDelete: function(row) {
-      const that = this
-      this.$confirm('此操作将把分类删除, 是否继续?', '提示', {
+    //删除部门
+    handleDelete:function(row){
+      let that = this;
+       this.$confirm('此操作将把部门删除, 是否继续?', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
       })
         .then(() => {
-          deleteDept(row.deptId).then(response => {
-            if (response.data.code === 200) {
+          deleteDept(row.id).then(res=>{
+            if (res.data.code === 200) {
               this.$message({
                 type: 'success',
                 message: '操作成功'
               })
-              that.findTreeData()
+              that.getDeptTreeList()
             } else {
               this.$message({ message: res.data.msg, type: 'error' })
             }
-          })
-        })
-        .catch(() => {
+          }).catch(function (error) {
+              that.$message({
+                type: 'error',
+                message: '删除失败'
+              })          
+          });
+        }).catch(()=>{
           this.$message({
             type: 'info',
             message: '已取消删除'
           })
         })
     },
-
-    submitEditForm: function() {
-      if (this.isEditForm) {
-        this.$refs['dataForm'].validate((valid) => {
-          if (valid) {
-            this.$confirm('确认提交吗？', '提示', {}).then(() => {
-              this.editLoading = true
-              updateDept(this.dataForm).then((res) => {
-                if (res.data.code === 200) {
-                  this.$message({ message: '操作成功', type: 'success' })
-                } else {
-                  this.$message({ message: res.data.msg, type: 'error' })
-                }
-                this.editLoading = false
-                this.$refs['dataForm'].resetFields()
-                this.dialogVisible = false
-                this.findTreeData()
-              })
-            })
-          }
-        })
-      } else {
-        this.$refs['dataForm'].validate((valid) => {
-          if (valid) {
-            this.$confirm('确认提交吗？', '提示', {}).then(() => {
-              this.editLoading = true
-              saveDept(this.dataForm).then((res) => {
-                if (res.data.code === 200) {
-                  this.$message({ message: '操作成功', type: 'success' })
-                } else {
-                  this.$message({ message: res.data.msg, type: 'error' })
-                }
-                this.editLoading = false
-                this.$refs['dataForm'].resetFields()
-                this.dialogVisible = false
-                this.findTreeData()
-              })
-            })
-          }
-        })
+    //得到编辑变的下拉树 加个顶级
+    getParentTree:function(children){
+      const parent = {
+        id:0,
+        name:'顶级菜单',
+        sort:0,
+        children:children
       }
+      return [parent];
+    },
+    //得到部门树列表
+    getDeptTreeList:function(){
+      this.loading = true
+      getDept().then(res => {
+          this.tableTreeData = res.data.data
+          this.popupTreeData = this.getParentTree(res.data.data)
+          this.loading = false
+      })
+    },
+    //得到编辑下拉框选择
+    handleTreeSelectChange: function(data){
+      this.dataForm.parentId = data.id
+      this.dataForm.parentName = data.name
+    },
+    //提交表单
+    submitForm:function(){
+      this.$refs['dataForm'].validate((valid) => {
+          if (valid) {
+              this.$confirm('确认提交吗？', '提示', {}).then(() => {
+                //有id就是新增
+                this.editLoading = true;
+                if(this.dataForm.id){
+                     console.log(this.dataForm);
+                     updateDept(this.dataForm).then((res)=>{
+                      if (res.data.code === 200) {
+                        this.$message({ message: '操作成功', type: 'success' })
+                      } else {
+                        this.$message({ message: res.data.msg, type: 'error' })
+                      }
+                      this.editLoading = false;
+                      this.$refs['dataForm'].resetFields();
+                      this.dialogFormVisible = false;
+                      this.getDeptTreeList();
+                    });
+                }else{
+                    saveDept(this.dataForm).then((res)=>{
+                      if (res.data.code === 200) {
+                        this.$message({ message: '操作成功', type: 'success' })
+                      } else {
+                        this.$message({ message: res.data.msg, type: 'error' })
+                      }
+                      this.editLoading = false;
+                      this.$refs['dataForm'].resetFields();
+                      this.dialogFormVisible = false;
+                      this.getDeptTreeList();
+                    });
+                }
+             });
+          }
+      });
     }
   }
 }
 </script>
+<style>
+</style>

@@ -7,7 +7,7 @@ import request from '@/utils/request'
 // 保存
 export const saveDept = (data) => {
   return request({
-    url: '/dept',
+    url: '/dept/add',
     method: 'post',
     data: data
   })
@@ -30,15 +30,15 @@ export const getDeptTree = () => {
 // 更新部门
 export const updateDept = (data) => {
   return request({
-    url: '/dept',
-    method: 'put',
+    url: '/dept/update',
+    method: 'post',
     data: data
   })
 }
 // 删除部门
 export const deleteDept = (id) => {
   return request({
-    url: '/dept/' + id,
-    method: 'delete'
+    url: '/dept/delete/' + id,
+    method: 'post'
   })
 }

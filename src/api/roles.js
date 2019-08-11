@@ -11,15 +11,15 @@ export function getRoleList(parms) {
 // 根据主键删除角色
 export function deleteRole(id) {
   return request({
-    url: '/role/' + id,
-    method: 'delete'
+    url: '/role/delete/' + id,
+    method: 'post'
   })
 }
 
 // 添加角色
 export function addRole(data) {
   return request({
-    url: '/role',
+    url: '/role/add',
     method: 'post',
     data: data
   })
@@ -31,8 +31,8 @@ export function addRole(data) {
  */
 export function updateRole(data) {
   return request({
-    url: 'role',
-    method: 'put',
+    url: '/role/update',
+    method: 'post',
     data: data
   })
 }
@@ -45,5 +45,16 @@ export function findRoleMenus(id) {
   return request({
     url: '/role/findRoleMenus/' + id,
     method: 'get'
+  })
+}
+
+/**
+ * 
+ * 根据部门id得到可以选择的数据类型分类
+ */
+export function getDsTypes(deptId){
+  return request({
+    url: '/role/getDsTypes/' + deptId,
+    method: 'post'
   })
 }

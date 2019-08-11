@@ -1,7 +1,7 @@
 <template>
-  <el-table :data="tableData" :row-style="showRow" v-bind="$attrs" v-on="$listeners">
-    <slot name="selection" />
-    <slot name="pre-column" />
+  <el-table :data="tableData"   :row-style="showRow" v-bind="$attrs" v-on="$listeners"  v-loading="loading" >
+    <!-- <slot name="selection" />
+    <slot name="xpt-column" /> -->
     <el-table-column
       v-for="item in columns"
       :key="item.key"
@@ -67,6 +67,10 @@ export default {
     indent: {
       type: Number,
       default: 50
+    },
+    loading:{
+      type:Boolean,
+      default: false
     }
   },
   data() {
