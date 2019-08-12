@@ -7,7 +7,7 @@ import request from '@/utils/request'
 // 保存字典
 export const saveDict = (data) => {
   return request({
-    url: '/dict',
+    url: '/dict/add',
     method: 'post',
     data: data
   })
@@ -33,16 +33,16 @@ export const getDictDetail = (parms) => {
 // 更新部门
 export const updateDict = (data) => {
   return request({
-    url: '/dict',
-    method: 'put',
+    url: '/dict/update',
+    method: 'post',
     data: data
   })
 }
 // 根据主键删除字典
 export const deleteDict = (id) => {
   return request({
-    url: '/dict/' + id,
-    method: 'delete'
+    url: '/dict/delete/' + id,
+    method: 'post'
   })
 }
 

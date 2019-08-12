@@ -1,7 +1,7 @@
 <template>
   <div class="app-container">
+    <div class="filter-container" style="margin:10px 0px 10px 0px">
 
-    <div class="head-container">
       <!-- 搜索 -->
       <el-input
         v-model="query.value"
@@ -13,7 +13,7 @@
       <el-select v-model="query.type" clearable placeholder="类型" class="filter-item" style="width: 130px">
         <el-option v-for="item in queryTypeOptions" :key="item.key" :label="item.display_name" :value="item.key" />
       </el-select>
-      <el-button class="filter-item" size="mini" type="primary" icon="el-icon-search">搜索</el-button>
+      <el-button class="filter-item" size="mini" type="primary" icon="el-icon-search" @click="handleSearch">搜索</el-button>
       <el-button
         class="filter-item"
         size="mini"
@@ -23,12 +23,17 @@
       >新增
       </el-button>
     </div>
+
     <!--表格渲染-->
-    <el-table v-loading="loading" :data="data" size="small" style="width: 100%;">
+    <el-table v-loading="loading" :data="tableData" size="small" style="width: 100%;">
       <el-table-column :show-overflow-tooltip="true" prop="name" label="名称" />
       <el-table-column :show-overflow-tooltip="true" prop="description" label="描述" />
       <el-table-column :show-overflow-tooltip="true" prop="remark" label="备注" />
-      <el-table-column :show-overflow-tooltip="true" prop="createTime" label="创建时间" />
+      <el-table-column label="创建时间"  prop="createTime">
+        <template slot-scope="scope">
+          <span>{{ parseTime(scope.row.createTime) }}</span>
+        </template>
+      </el-table-column>
 
       <el-table-column label="操作" width="250" align="center">
         <template slot-scope="scope">
@@ -41,7 +46,7 @@
             <p>此操作将删除字典与对应的字典详情，确定要删除吗？</p>
             <div style="text-align: right; margin: 0">
               <el-button size="mini" type="text" @click="$refs[scope.row.name].doClose()">取消</el-button>
-              <el-button :loading="delLoading" type="primary" size="mini" @click="subDelete(scope.row.name)">确定
+              <el-button type="primary" size="mini" @click="handleDelete(scope.row.id,'1')">确定
               </el-button>
             </div>
             <el-button slot="reference" type="danger" size="mini">删除</el-button>
@@ -61,104 +66,84 @@
       />
     </div>
 
-    <el-dialog :append-to-body="true" :visible.sync="qqdialog" title="字典详情" width="800px">
-      <div slot="header" class="clearfix">
-        <!--<span>字典详情-->
-        <!--<span style="color: #317EF3">-->
-        <!--{{form.name}}-->
-        <!--</span>-->
-        <!--</span>-->
-      </div>
-      <el-button
-        class="filter-item"
-        size="mini"
-        type="primary"
-        icon="el-icon-plus"
-        @click="handleValueAdd"
-      >新增
-      </el-button>
-      <!--</div>-->
-      <div>
-        <!--表格渲染-->
-        <el-table v-loading="loading" :data="dictDetailData" size="small" style="width: 100%;">
-          <el-table-column prop="label" label="字典标签" />
-          <el-table-column prop="value" label="字典值" />
-          <el-table-column prop="sort" label="排序" />
-          <el-table-column label="操作" width="140px" align="center">
+    <!-- 详情页-->
+    <el-dialog :append-to-body="true" :visible.sync="detailDialog" title="字典详情" width="800px">
+        <el-button
+          class="filter-item"
+          size="mini"
+          type="primary"
+          icon="el-icon-plus"
+          @click="handleDetailAdd"
+        >新增
+        </el-button>
+        <div>
+          <!--表格渲染-->
+          <el-table v-loading="dictDetailLoading" :data="dictDetailData" size="small" style="width: 100%;">
+              <el-table-column prop="label" label="字典标签" />
+              <el-table-column prop="value" label="字典值" />
+              <el-table-column prop="sort" label="排序" />
+              <el-table-column label="操作" width="140px" align="center">
 
-            <template slot-scope="scope">
-              <el-button slot="reference" size="mini" @click="handleValueEdit(scope.row)">编辑</el-button>
-              <el-popover
-                :ref="scope.row.id"
-                placement="top"
-                width="120"
-              >
-                <p>确定删除本条数据吗？</p>
-                <div style="text-align: right; margin: 0">
-                  <el-button size="mini" type="text" @click="$refs[scope.row.id].doClose()">取消</el-button>
-                  <el-button :loading="delLoading" type="primary" size="mini" @click="subDelete(scope.row.id)">确定
-                  </el-button>
-                </div>
-                <el-button slot="reference" type="danger" size="mini">删除</el-button>
-              </el-popover>
-            </template>
-          </el-table-column>
-        </el-table>
-        <!--分页组件-->
-        <!--<div class="block">-->
-        <!--<el-pagination-->
-        <!--:current-page.sync="dcurrentPage"-->
-        <!--:page-size="dpageSize"-->
-        <!--layout="total, prev, pager, next, jumper"-->
-        <!--:total="total"-->
-        <!--@current-change="handleCurrentChange"-->
-        <!--/>-->
-        <!--</div>-->
-      </div>
+                <template slot-scope="scope">
+                  <el-button slot="reference" size="mini" @click="handleDetailEdit(scope.row)">编辑</el-button>
+                  <el-popover
+                    :ref="scope.row.id"
+                    placement="top"
+                    width="120"
+                  >
+                    <p>确定删除本条数据吗？</p>
+                    <div style="text-align: right; margin: 0">
+                      <el-button size="mini" type="text" @click="$refs[scope.row.id].doClose()">取消</el-button>
+                      <el-button type="primary" size="mini" @click="handleDelete(scope.row.id,'2')">确定
+                      </el-button>
+                    </div>
+                    <el-button slot="reference" type="danger" size="mini">删除</el-button>
+                  </el-popover>
+                </template>
+              </el-table-column>  
+          </el-table>
+        </div>
     </el-dialog>
 
-    <!--</el-col>-->
-    <!--</el-row>-->
-
-    <!--新增-->
-    <el-dialog :append-to-body="true" :visible.sync="dialog" :title="isAdd ? '新增字典' : '编辑字典'" width="500px">
-      <el-form ref="form" :model="form" :rules="rules" size="small" label-width="80px">
+    <!--修改或编辑框-->
+    <el-dialog :title="!dataForm.id ? '新增字典' : '编辑字典'" :visible.sync="dialogFormVisible" :close-on-click-modal="false">
+      <el-form ref="dataForm" :model="dataForm" :rules="rules" label-width="80px"  size="small"  style="text-align:left;">
         <el-form-item label="字典名称" prop="name">
-          <el-input v-model="form.name" style="width: 370px;" placeholder="请输入字典名称" />
+          <el-input v-model="dataForm.name" style="width: 370px;" placeholder="请输入字典名称" />
         </el-form-item>
         <el-form-item label="描述" prop="description">
-          <el-input v-model="form.description" style="width: 370px;" placeholder="请输入描述" />
+          <el-input v-model="dataForm.description" style="width: 370px;" placeholder="请输入描述" />
         </el-form-item>
         <el-form-item label="备注">
-          <el-input v-model="form.remark" style="width: 370px;" placeholder="请输入备注" />
+          <el-input v-model="dataForm.remark" style="width: 370px;" placeholder="请输入备注" />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button type="text" @click="dialog = false">取消</el-button>
-        <el-button :loading="loading" type="primary" @click="doSubmit">确认</el-button>
+        <el-button type="text" @click="dialogFormVisible = false">取消</el-button>
+        <el-button :loading="loading" type="primary" @click="submitForm('1')">确认</el-button>
       </div>
     </el-dialog>
 
-    <el-dialog :append-to-body="true" :visible.sync="ddialog" :title="isValueAdd ? '新增字典详情' : '编辑字典详情'" width="500px">
-      <el-form ref="form" :model="form" :rules="drules" size="small" label-width="80px">
+
+    <!--修改或编辑框-->
+    <el-dialog :title="!dataForm.id ? '新增字典详情' : '编辑字典详情'" :visible.sync="dialogDetailFormVisible" :close-on-click-modal="false">
+      <el-form ref="dataForm" :model="dataForm" :rules="drules" label-width="80px"  size="small"  style="text-align:left;">
         <el-form-item label="字典标签" prop="label">
-          <el-input v-model="form.label" style="width: 370px;" />
+          <el-input v-model="dataForm.label" style="width: 370px;" />
         </el-form-item>
         <el-form-item label="字典值" prop="value">
-          <el-input v-model="form.value" style="width: 370px;" />
+          <el-input v-model="dataForm.value" style="width: 370px;" />
         </el-form-item>
         <el-form-item label="排序" prop="sort">
-          <el-input-number v-model.number="form.sort" :min="0" :max="999" />
+          <el-input-number v-model.number="dataForm.sort" :min="0" :max="999" />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button type="text" @click="ddialog = false">取消</el-button>
-        <el-button :loading="dloading" type="primary" @click="doDetailSubmit">确认</el-button>
+        <el-button type="text" @click="dialogFormVisible = false">取消</el-button>
+        <el-button :loading="loading" type="primary" @click="submitForm('2')">确认</el-button>
       </div>
-
     </el-dialog>
   </div>
-
 </template>
 
 <script>
@@ -168,34 +153,40 @@ import { deepClone, parseTime } from '@/utils/index'
 export default {
   data() {
     return {
-      data: [],
-      dictDetailData: [],
-      loading: false,
-      dloading: false,
-      qqdialog: false,
-      dialog: false,
-      ddialog: false,
-      isAdd: false,
-      isValueAdd: false,
-      visible: false,
-      form: {
-        id: '',
-        name: '',
-        label: '',
-        value: '',
-        sort: '',
-        description: '',
-        remark: ''
+      //搜索
+      query: {
+        type: '',
+        value: ''
       },
+      dictName:'',
+      //表格数据
+      tableData:[],
+      //表格加载
+      loading:true,
       currentPage: 1,
       pageSize: 10,
       total: 0, // 总数量
-      dcurrentPage: 1,
-      dpageSize: 10,
-      dtotal: 0,
-      // 名称
-      dictName: '',
-      delLoading: false,
+      //详情是否显示
+      detailDialog:false,
+      dialogFormVisible:false,
+      dialogDetailFormVisible:false,
+      dictDetailLoading:false,
+      //数据字典详情数据
+      dictDetailData:[],
+      //搜索框类型选项
+      queryTypeOptions: [
+        { key: 'name', display_name: '字典名称' },
+        { key: 'remark', display_name: '描述' }
+      ],
+      dataForm: {
+        id: null,
+        name: null,
+        label: null,
+        value: null,
+        sort: 0,
+        description: null,
+        remark: null
+      },
       rules: {
         name: [
           { required: true, message: '字典名称不为空', trigger: 'blur' }
@@ -212,193 +203,159 @@ export default {
           { required: true, message: '字典值不为空', trigger: 'blur' }
         ]
       },
-      queryTypeOptions: [
-        { key: 'name', display_name: '字典名称' },
-        { key: 'remark', display_name: '描述' }
-      ],
-      query: {
-        type: '',
-        value: ''
-      }
     }
   },
   created() {
-    this.getDictData()
+    this.getDictList()
   },
   methods: {
+    parseTime,
     // 获取字典详情
-    getDictData: function() {
+    getDictList: function() {
       this.loading = true
       const params = new URLSearchParams()
       params.append('page', this.currentPage)
       params.append('pageSize', this.pageSize)
+      params.append('detailName', '')
+      params.append('type', this.query.type)
+      params.append('value', this.query.value)
       getDict(params).then(res => {
-        this.data = res.data.data.records
+        this.tableData = res.data.data.records
         this.total = res.data.data.total
         this.loading = false
       })
     },
-
-    // 字典名称提交动作
-    doSubmit() {
-      this.$refs['form'].validate((valid) => {
-        if (valid) {
-          if (this.isAdd) {
-            // 新增字典
-            saveDict(this.form).then((res) => {
-              if (res.data.code === 200) {
-                this.$message({ message: '操作成功', type: 'success' })
-              } else {
-                this.$message({ message: res.data.msg, type: 'error' })
-              }
-              this.dialog = false
-              this.getDictData()
-              this.$refs['form'].resetFields()
-            })
-          } else {
-            // 更新字典
-            updateDict(this.form).then((res) => {
-              if (res.data.code === 200) {
-                this.$message({ message: '操作成功', type: 'success' })
-              } else {
-                this.$message({ message: res.data.msg, type: 'error' })
-              }
-              this.dialog = false
-              this.getDictData()
-            })
-          }
-        }
-      })
-    },
-    // 字典值提交操作
-    doDetailSubmit() {
-      this.$refs['form'].validate((valid) => {
-        if (valid) {
-          if (this.isAdd) {
-            // 新增字典
-            saveDict(this.form).then((res) => {
-              if (res.data.code === 200) {
-                this.$message({ message: '操作成功', type: 'success' })
-              } else {
-                this.$message({ message: res.data.msg, type: 'error' })
-              }
-              this.ddialog = false
-              this.handleChange(this.dictName)
-            })
-          } else {
-            // 更新字典
-            updateDict(this.form).then((res) => {
-              if (res.data.code === 200) {
-                this.$message({ message: '操作成功', type: 'success' })
-              } else {
-                this.$message({ message: res.data.msg, type: 'error' })
-              }
-              this.ddialog = false
-              this.handleChange(this.dictName)
-            })
-          }
-        }
-      })
-    },
-
-    // 添加字典
-    handleAdd: function() {
-      this.dialog = true
-      this.isAdd = true
-      this.form = {
-        id: 0,
-        name: '',
-        remark: ''
-      }
-    },
-    // 编辑字典
-    handleEdit: function(row) {
-      this.dialog = true
-      this.isAdd = false
-      this.form = row
-    },
-
-    // 添加字典值
-    handleValueAdd: function() {
-      this.ddialog = true
-      this.isAdd = true
-      this.form = {
-        name: this.dictName,
-        label: '',
-        value: '',
-        sort: ''
-      }
-    },
-    // 编辑字典值
-    handleValueEdit: function(row) {
-      this.ddialog = true
-      this.isValueAdd = false
-      this.form = row
-      this.form.name = this.dictName
-    },
-
-    // 删除操作
-    subDelete(val) {
-      if (this.qqdialog) {
-        deleteDict(val).then(res => {
-          if (res.data.code === 200) {
-            this.delLoading = false
-            this.handleChange(this.dictName)
-            this.$notify({
-              title: '删除成功',
-              type: 'success',
-              duration: 2500
-            })
-          } else {
-            this.$notify({
-              title: res.data.msg,
-              type: 'error',
-              duration: 2500
-            })
-          }
-        }).catch(err => {
-          this.delLoading = false
-          console.log(err.response.data.message)
-        })
-      } else {
-        this.delLoading = true
-        deleteDictByName(val).then(res => {
-          if (res.data.code === 200) {
-            this.delLoading = false
-            this.$notify({
-              title: '删除成功',
-              type: 'success',
-              duration: 2500
-            })
-            this.getDictData()
-          } else {
-            this.$notify({
-              title: res.data.msg,
-              type: 'error',
-              duration: 2500
-            })
-          }
-        }).catch(err => {
-          this.delLoading = false
-          console.log(err.response.data.message)
-        })
-      }
-    },
-    // 换页
-    handleCurrentChange: function(val) {
+    //处理分页
+    handleCurrentChange:function(val){
       this.currentPage = val
-      this.getDictData()
+      this.getDictList()
     },
-    handleChange(val) {
-      if (val) {
-        this.qqdialog = true
-        const params = new URLSearchParams()
-        params.append('name', val)
-        this.dictName = val
-        getDictDetail(params).then(res => {
-          this.dictDetailData = res.data.data
-        })
-      }
+    //处理搜索
+    handleSearch:function(){
+      this.getDictList();
+    },
+    //处理编辑
+    handleEdit:function(row){
+      this.dialogFormVisible = true
+      this.dataForm.id = row.id
+      this.dataForm.name = row.name
+      this.dataForm.label = row.label
+      this.dataForm.value = row.value
+      this.dataForm.sort = row.sort
+      this.dataForm.description = row.description
+      this.dataForm.remark = row.remark
+    },
+    //处理新增
+    handleAdd:function(){
+      this.dialogFormVisible = true
+      this.dataForm.id = null
+      this.dataForm.name = null
+      this.dataForm.label = null
+      this.dataForm.value = null
+      this.dataForm.sort = 0
+      this.dataForm.description = null
+      this.dataForm.remark = null
+    },
+    //处理删除
+    handleDelete:function(id,type){
+      deleteDict(id).then(res=>{
+        if (res.data.code === 200) {
+          this.$message({
+            type: 'success',
+            message: '操作成功'
+          })
+          if(type=='1'){
+            this.getDictList()
+          }else{
+            this.getDictDetailList()
+          }
+        } else {
+          this.$message({ message: res.data.msg, type: 'error' })
+        }
+      });
+    },
+    //处理字典详情新增
+    handleDetailAdd:function(){
+      this.dialogDetailFormVisible = true
+      this.dataForm.id = null
+      this.dataForm.name = this.dictName
+      this.dataForm.label = null
+      this.dataForm.value = null
+      this.dataForm.sort = 0
+      this.dataForm.description = null
+      this.dataForm.remark = null
+    },
+    //处理字典详情编辑
+    handleDetailEdit:function(row){
+      this.dialogDetailFormVisible = true
+      this.dataForm.id = row.id
+      this.dataForm.name = this.dictName
+      this.dataForm.label = row.label
+      this.dataForm.value = row.value
+      this.dataForm.sort = row.sort
+      this.dataForm.description = row.description
+      this.dataForm.remark = row.remark
+    },
+    //根据name得到字典子集
+    handleChange:function(name){
+      this.dictName = name
+      this.detailDialog = true
+      this.getDictDetailList()
+    },
+    // 获取字典详情List
+    getDictDetailList: function() {
+      this.dictDetailLoading = true
+      const params = new URLSearchParams()
+      params.append('page', 0)
+      params.append('pageSize', 100)
+      params.append('detailName', this.dictName)
+      params.append('type', '')
+      params.append('value', '')
+      getDict(params).then(res => {
+        this.dictDetailData = res.data.data.records
+        this.dictDetailLoading = false
+      })
+    },
+    //提交表单
+    submitForm:function(type){
+      this.$refs['dataForm'].validate((valid) => {
+        if (valid) {
+          if (this.dataForm.id) {
+            // 更新字典
+            updateDict(this.dataForm).then((res) => {
+              if (res.data.code === 200) {
+                this.$message({ message: '操作成功', type: 'success' })
+              } else {
+                this.$message({ message: res.data.msg, type: 'error' })
+              }
+              if(type=='1'){
+                this.dialogFormVisible = false
+                this.getDictList()
+              }else{
+                this.dialogDetailFormVisible = false
+                this.getDictDetailList()
+              }
+        
+            })
+          } else {
+            // 新增字典
+            saveDict(this.dataForm).then((res) => {
+              if (res.data.code === 200) {
+                this.$message({ message: '操作成功', type: 'success' })
+              } else {
+                this.$message({ message: res.data.msg, type: 'error' })
+              }
+              if(type=='1'){
+                this.dialogFormVisible = false
+                this.getDictList()
+              }else{
+                this.dialogDetailFormVisible = false
+                this.getDictDetailList()
+              }
+            })
+          }
+        }
+      })
     }
   }
 }

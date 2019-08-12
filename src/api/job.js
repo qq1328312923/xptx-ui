@@ -8,7 +8,7 @@ import request from '@/utils/request'
 // 新增岗位
 export function addJob(data) {
   return request({
-    url: '/job',
+    url: '/job/add',
     method: 'post',
     data: data
   })
@@ -17,7 +17,7 @@ export function addJob(data) {
 // 获取岗位列表
 export function getJobList(parms) {
   return request({
-    url: '/job',
+    url: '/job/list',
     method: 'get',
     params: parms
   })
@@ -25,8 +25,8 @@ export function getJobList(parms) {
 // 更新岗位
 export function updateJob(data) {
   return request({
-    url: '/job',
-    method: 'put',
+    url: '/job/update',
+    method: 'post',
     data: data
   })
 }
@@ -37,8 +37,8 @@ export function updateJob(data) {
  */
 export function deleteJob(id) {
   return request({
-    url: '/job/' + id,
-    method: 'delete'
+    url: '/job/delete/' + id,
+    method: 'post'
   })
 }
 

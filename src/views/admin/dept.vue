@@ -223,7 +223,6 @@ export default {
                 //有id就是新增
                 this.editLoading = true;
                 if(this.dataForm.id){
-                     console.log(this.dataForm);
                      updateDept(this.dataForm).then((res)=>{
                       if (res.data.code === 200) {
                         this.$message({ message: '操作成功', type: 'success' })

@@ -77,7 +77,7 @@
           <el-table-column label="状态" width="70" align="center">
             <template slot-scope="scope">
               <div v-for="item in dicts" :key="item.id">
-                <el-tag v-if="scope.row.status.toString() === item.value" :type="scope.row.status ? '' : 'info'">
+                <el-tag v-if="'user_status_'+scope.row.status.toString() === item.value" :type="scope.row.status ? '' : 'info'">
                   {{item.label }}
                 </el-tag>
               </div>
@@ -95,7 +95,7 @@
         </el-table>
 
         <!-- 添加或修改对话框 -->
-        <el-dialog :title="!dataForm.deptId ? '新增用户' : '修改用户'" :visible.sync="dialogFormVisible" :close-on-click-modal="false">
+        <el-dialog :title="!dataForm.id ? '新增用户' : '修改用户'" :visible.sync="dialogFormVisible" :close-on-click-modal="false">
             <el-form :model="dataForm" :rules="rules" label-width="80px" size="small"  style="text-align:left;"> 
                 <el-form-item label="用户名"  prop="username">
                   <el-input v-model="dataForm.username" auto-complete="off" placeholder="请输入用户名" />
@@ -207,7 +207,6 @@
           deptId: 0,
           keyword: '',
           //弹框显示的标题
-          operation: false, // true:新增, false:编辑
           dialogFormVisible: false, // 控制弹出框
           //表单标签
           formLabelWidth: '120px',
@@ -297,13 +296,10 @@
           this.resetDataForm();
           //显示dialog
           this.dialogFormVisible = true
-          //是新增
-          this.operation = true
         },
          // 编辑
         handleEdit: function(row) {
           this.dialogFormVisible = true
-          this.operation = false
           this.dataForm = Object.assign({}, row)
           this.dataForm.status = row.status+'';
           this.getJobs(row.deptId)
@@ -333,8 +329,25 @@
             userRoles.push(this.dataForm.roleList[i])
           }
           this.dataForm.roleList = userRoles
-          if(this.operation){
-             // 添加用户
+          if(this.dataForm.id){
+            // 编辑用户
+            editUser(this.dataForm).then(response => {
+                if (response.data.code === 200) {
+                  this.$message({
+                    type: 'success',
+                    message: '操作成功'
+                  })
+                  this.dialogFormVisible = false
+                  this.adminList()
+                } else {
+                  this.$message({
+                    type: 'error',
+                    message: response.data.msg
+                  })
+                }
+            })
+          }else{
+            // 添加用户
             addUser(this.dataForm).then(response => {
               if (response.data.code === 200) {
                 this.$message({
@@ -350,23 +363,6 @@
                 })
               }
             })
-          }else{
-           // 编辑用户
-           editUser(this.dataForm).then(response => {
-              if (response.data.code === 200) {
-                this.$message({
-                  type: 'success',
-                  message: '操作成功'
-                })
-                this.dialogFormVisible = false
-                this.adminList()
-              } else {
-                this.$message({
-                  type: 'error',
-                  message: response.data.msg
-                })
-              }
-           })
           }
         },
          // 删除用户
