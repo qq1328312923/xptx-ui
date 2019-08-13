@@ -11,7 +11,7 @@ export function loginByUsername(username, password, captcha,captchauuid) {
   return request({
     url: '/login',
     method: 'post',
-    params: data
+    data: data
   })
 }
 

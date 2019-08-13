@@ -93,6 +93,18 @@
             </template>
           </el-table-column>
         </el-table>
+        <!--分页-->
+        <div class="block">
+          <el-pagination
+            :current-page.sync="currentPage"
+            :page-sizes="[1, 20, 30, 50]"
+            :page-size="pageSize"
+            layout="total, prev, pager, next,sizes, jumper"
+            :total="total"
+            @size-change="handleSizeChange"
+            @current-change="handleCurrentChange"
+          />
+        </div>
 
         <!-- 添加或修改对话框 -->
         <el-dialog :title="!dataForm.id ? '新增用户' : '修改用户'" :visible.sync="dialogFormVisible" :close-on-click-modal="false">
@@ -272,8 +284,8 @@
         adminList: function() {
           this.loading = true
           const params = new URLSearchParams()
-          params.append('current', this.currentPage)
-          params.append('size', this.pageSize)
+          params.append('page', this.currentPage)
+          params.append('pageSize', this.pageSize)
           params.append('deptId', this.deptId)
           params.append('username', this.keyword)
           getUserList(params).then(response => {
@@ -426,7 +438,16 @@
               })
             })
         },
-        
+        // 换页
+        handleCurrentChange: function(val) {
+          this.currentPage = val
+          this.adminList()
+        },
+        // 换页数
+        handleSizeChange(val) {
+          this.pageSize = val
+          this.adminList()
+        }
      }
   }
 </script>

@@ -2,15 +2,16 @@ import request from '@/utils/request'
 
 export function getLogList(parms) {
   return request({
-    url: '/log',
+    url: '/log/list',
     method: 'get',
     params: parms
   })
 }
 
-export function deleteLog(id) {
+export function deleteLog(data) {
   return request({
-    url: '/log/' + id,
-    method: 'delete'
+    url: '/log/delete',
+    method: 'post',
+    data
   })
 }

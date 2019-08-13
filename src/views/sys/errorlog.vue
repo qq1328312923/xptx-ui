@@ -1,21 +1,34 @@
 <template>
   <div class="app-container">
-    <!-- 查询和其他操作 -->
-    <div class="filter-container">
+   <div class="filter-container" style="margin:10px 0px 10px 0px">
+      <!-- 搜索 -->
       <el-input
-        v-model="keyword"
+        v-model="userName"
         clearable
-        class="filter-item"
-        size="small"
+        placeholder="输入操作人"
         style="width: 200px;"
-        placeholder="请输入操作人名称"
-        @keyup.enter.native="handleFind"
+        class="filter-item"
       />
-      <el-button class="filter-item" type="primary" icon="el-icon-search" size="mini" @click="handleFind">查找</el-button>
+       <!-- 搜索 -->
+      <el-input
+        v-model="description"
+        clearable
+        placeholder="输入描述"
+        style="width: 200px;"
+        class="filter-item"
+      />
+      <el-button class="filter-item" size="mini" type="primary" icon="el-icon-search" @click="handleSearch">搜索</el-button>
+      <el-button
+        size="mini"
+        type="primary"
+        icon="el-icon-plus"
+        @click="handleBatchDelete"
+      >批量删除
+      </el-button>
     </div>
-
-    <el-table v-loading="loading" :data="tableData" style="width: 100%" size="mini">
-      <el-table-column type="selection" />
+        <!--表格渲染-->
+    <el-table v-loading="loading" :data="tableData" style="width: 100%" size="mini" @selection-change="handleSelectionChange">
+      <el-table-column type="selection"  />
 
       <el-table-column label="序号" width="60" align="center">
         <template slot-scope="scope">
@@ -26,17 +39,6 @@
       <el-table-column label="操作人" width="100" align="center">
         <template slot-scope="scope">
           <span>{{ scope.row.userName }}</span>
-        </template>
-      </el-table-column>
-
-      <el-table-column label="类型" width="80" align="center">
-        <template slot-scope="scope">
-          <template v-if="scope.row.type === 1">
-            <span>正常</span>
-          </template>
-          <template v-if="scope.row.type === 2">
-            <span>异常</span>
-          </template>
         </template>
       </el-table-column>
 
@@ -62,8 +64,6 @@
           <span>{{ scope.row.actionUrl }}</span>
         </template>
       </el-table-column>
-
-      <el-table-column label="请求URL" :show-overflow-tooltip="true" width="160" prop="params" align="center" sortable />
       <el-table-column label="请求时间(毫秒)" width="80" align="center" sortable>
         <template slot-scope="scope">
           <span>{{ scope.row.consumingTime }}</span>
@@ -77,7 +77,7 @@
 
       <el-table-column label="操作" fixed="right" header-align="center" width="185" align="center">
         <template slot-scope="scope">
-          <el-button size="mini" icon="el-icon-view" @click="handleView(scope.row)">查看</el-button>
+          <el-button type="infor" size="mini" icon="el-icon-view" @click="handleView(scope.row)">删除</el-button>
           <el-button type="danger" size="mini" icon="el-icon-delete" @click="handleDelete(scope.row)">删除</el-button>
         </template>
       </el-table-column>
@@ -101,35 +101,30 @@
         {{ errorInfo }}
       </span>
     </el-dialog>
-
   </div>
 </template>
 
 <script>
 import { getLogList, deleteLog } from '@/api/log'
-import { formatData } from '@/utils/webUtils'
 import { parseTime } from '@/utils/index'
 
 export default {
 
   data() {
     return {
+       //搜索的用户名
+      userName:'',
+      //搜索的描述
+      description:'',
       // 日志列表
       tableData: [],
       currentPage: 1,
       pageSize: 10,
       total: 0, // 总数量
       keyword: '',
-      options: [{
-        value: 1,
-        label: '正常'
-      }, {
-        value: 2,
-        label: '异常'
-      }],
-      errorInfo: '',
-      dialog: false,
-      loading: false
+      loading: false,
+      multipleSelection:[],//表格选中的值
+      dialog:false,
     }
   },
   created() {
@@ -143,15 +138,18 @@ export default {
       params.append('page', this.currentPage)
       params.append('pageSize', this.pageSize)
       params.append('type', 2)
-      params.append('userName', this.keyword)
+
+      params.append('userName', this.userName)
+      params.append('description', this.description)
+
       getLogList(params).then(response => {
         this.loading = false
         this.tableData = response.data.data.records
         this.total = response.data.data.total
       })
     },
-
-    handleFind: function() {
+    // 搜索
+    handleSearch: function() {
       this.logList()
     },
 
@@ -160,11 +158,46 @@ export default {
       this.errorInfo = row.exDetail
       this.dialog = true
     },
-
+    deleteLog(datas){
+        deleteLog(datas).then(response => {
+        if (response.data.code === 200) {
+          this.$message({
+            type: 'success',
+            message: '操作成功'
+          })
+          this.logList()
+        } else {
+          this.$message({
+            type: 'error',
+            message: response.data.msg
+          })
+        }
+      })
+    },
+    // 查看
+    handleView: function(row) {
+      this.errorInfo = row.exDetail
+      this.dialog = true
+    },
+    handleSelectionChange(val) {
+      this.multipleSelection = val;
+    },
     /**
-       * 删除日志
-       * @param row
-       */
+     * 批量删除日志
+     */
+    handleBatchDelete:function(){
+      let datas = [];
+      this.multipleSelection.forEach(n=>{
+        if(n!=null){
+          datas.push(n.id);
+        }
+      })
+      this.deleteLog(datas);
+    },
+    /**
+     * 删除日志
+     * @param row
+     */
     handleDelete: function(row) {
       const that = this
       this.$confirm('此操作将该日志删除, 是否继续?', '提示', {
@@ -173,20 +206,9 @@ export default {
         type: 'warning'
       })
         .then(() => {
-          deleteLog(row.id).then(response => {
-            if (response.data.code === 200) {
-              this.$message({
-                type: 'success',
-                message: '操作成功'
-              })
-              that.logList()
-            } else {
-              this.$message({
-                type: 'error',
-                message: response.data.msg
-              })
-            }
-          })
+          var attr = [];
+          attr.push(row.id);
+          this.deleteLog(attr);
         })
         .catch(() => {
           this.$message({
@@ -195,10 +217,12 @@ export default {
           })
         })
     },
+    // 换页
     handleCurrentChange: function(val) {
       this.currentPage = val
       this.logList()
     },
+    // 换页数
     handleSizeChange(val) {
       this.pageSize = val
       this.logList()
@@ -207,20 +231,10 @@ export default {
 }
 </script>
 
-<style>
-  .avatar-uploader .el-upload {
-    border: 1px dashed #d9d9d9;
-    border-radius: 6px;
-    margin: 0, 0, 0, 10;
-    cursor: pointer;
-    position: relative;
-    overflow: hidden;
-  }
-
+<style scoped="scoped" lang="scss">
   .uploadImgBody :hover {
     border: dashed 1px #00ccff;
   }
-
   img {
     width: 100px;
     height: 100px;

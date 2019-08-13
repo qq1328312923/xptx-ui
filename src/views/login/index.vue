@@ -70,7 +70,7 @@
 </template>
 
 <script>
-import { formatData } from '@/utils/webUtils'
+import { formatData,passwordEncrypt } from '@/utils/webUtils'
 import { captcha } from '@/api/login'
 
 
@@ -95,6 +95,7 @@ export default {
       loginForm: {
         username: 'admin',
         password: '123456',
+        passwordEncrypt:'',
         captcha: '',
         captchauuid:'',
         src: ''
@@ -134,6 +135,7 @@ export default {
       this.$refs.loginForm.validate(valid => {
         if (valid) {
           this.loading = true
+          this.loginForm.passwordEncrypt = passwordEncrypt(this.loginForm.password)
           this.$store.dispatch('LoginByUsername', this.loginForm).then(() => {
             this.$router.push({ path: this.redirect || '/' })
             this.loading = false
