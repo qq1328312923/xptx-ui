@@ -7,6 +7,7 @@ const user = {
     status: '',
     code: '',
     token: getToken(),
+    nickName:'',
     name: '',
     avatar: '',
     introduction: '',
@@ -31,6 +32,9 @@ const user = {
     },
     SET_NAME: (state, name) => {
       state.name = name
+    },
+    SET_NICK_NAME: (state, nickName) => {
+      state.nickName = nickName
     },
     SET_AVATAR: (state, avatar) => {
       state.avatar = avatar
@@ -75,6 +79,9 @@ const user = {
           commit('SET_NAME', data.name)
           // 头像
           commit('SET_AVATAR', data.avatar)
+
+          commit('SET_NICK_NAME',data.nickName)
+          
           resolve(response)
         }).catch(error => {
           reject(error)

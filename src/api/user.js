@@ -40,36 +40,53 @@ export function deleteUser(id) {
   })
 }
 
-// 获取用户个人信息
-export function getUserInfo() {
-  return request({
-    url: '/user/info',
-    method: 'get'
-  })
-}
-
 // 修改密码
 export function updatePass(parms) {
   return request({
     url: '/user/updatePass',
-    method: 'put',
-    params: parms
-  })
-}
-// 修改邮箱
-export function updateEmail(parms) {
-  return request({
-    url: '/user/updateEmail',
-    method: 'put',
+    method: 'post',
     params: parms
   })
 }
 
-// 发送邮箱验证码
-export function resetEmail(parms) {
+// 编辑用户详情
+export function editUserInfo(parms) {
   return request({
-    url: '/user/sendMailCode',
+    url: '/user/updateUserInfo',
     method: 'post',
-    params: parms
+    //data发送的是json param
+    data: parms
   })
+}
+
+// 修改邮箱
+export function updateEmail(parms) {
+  return request({
+    url: '/user/updateEmail',
+    method: 'post',
+    params:parms
+  })
+}
+
+// 发送邮箱验证码
+export function sendMailCode(email) {
+  //如果这种形式 都是走的默认
+  return request({
+    url: '/user/sendMailCode/'+email,
+    method: 'post'
+  })
+}
+
+//上传头像
+export function uploadAvatar(parms){
+  let config = {
+    headers: {
+      "Content-Type": "multipart/form-data"
+    }
+  };
+  return request.post(
+    '/user/uploadAvatar',
+     parms,
+     config
+  )
 }

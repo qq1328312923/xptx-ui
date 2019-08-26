@@ -8,7 +8,7 @@
         <span data-v-b50ef614="" class="el-breadcrumb__item" aria-current="page">
           <span   class="el-breadcrumb__inner">
             <span data-v-b50ef614="" class="no-redirect">
-             您好,{{name}}
+             您好,{{nickName}}
              </span>
          </span>
        </span>
@@ -57,14 +57,15 @@ export default {
     Hamburger,
     ThemePicker
   },
-  //有缓存的属性
+  //有缓存的属性 直接从store中去取值
   computed: {
     //相当于定义一个属性{"sidebar":sidebar,"name":name}
     ...mapGetters([
       'sidebar',
       'name',
       'avatar',
-      'device'
+      'device',
+      'nickName'
     ])
   },
   methods: {
