@@ -5,9 +5,7 @@
         <img src="https://xplatform-pro.oss-cn-beijing.aliyuncs.com/icon/xpt_log.png" height="256" width="256" alt="pre系统logo">
       </div>
       <span>
-        <a href="https://gitee.com/li_haodong/pre" target="_blank">
-          <img src="https://img.shields.io/badge/XPT-1.0-green.svg" alt="Build Status">
-        </a>
+        <img src="https://img.shields.io/badge/XPT-1.0-green.svg" alt="Build Status">
         <img src="https://img.shields.io/badge/spring--boot-2.1.5.RELEASE-green.svg" alt="spring-boot">
         <img src="https://img.shields.io/badge/security-5.1.5-blue.svg" alt="security">
         <img src="https://img.shields.io/badge/mybatis--plus-3.1.1-blue.svg" alt="mybatis-plus">
@@ -34,7 +32,6 @@
           <el-collapse-item title="基本功能" name="4">
             <div>用户管理 、角色管理 、角色管理 、菜单管理 、部门管理</div>
             <div>岗位管理 、字典管理 操作日志 异常日志</div>
-            <div><a href="https://gitee.com/li_haodong/pre" target="_blank">详细介绍Pre </a></div>
           </el-collapse-item>
         </el-collapse>
       </span>

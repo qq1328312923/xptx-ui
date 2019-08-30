@@ -7,11 +7,11 @@ module.exports = {
     assetsSubDirectory: 'static',
     assetsPublicPath: '/',
     proxyTable: {
-      '/pre': {
-        target: 'http://localhost:8080',//后端接口地址
+      '/xpt': {
+        target: 'http://118.24.31.230:10201',//后端接口地址
         changeOrigin: true,  //是否跨域
         pathRewrite: {
-          '^/pre': '/',//重写,
+          '^/xpt': '/',//重写,
         }
       }
 
@@ -35,7 +35,6 @@ module.exports = {
     assetsRoot: path.resolve(__dirname, '../dist'),
     assetsSubDirectory: 'static',
     assetsPublicPath: '/',
-
     productionSourceMap: false,
     devtool: 'source-map',
     productionGzip: false,
